@@ -20,6 +20,8 @@ typedef struct{
     Info info;           /*number of  16 byte blocks*/
     struct block *next;  /*next free*/
     struct block *prev;
+    struct block *next_free;
+    struct block *prev_free;
     char data[0];        /*start of the allocated memory*/
 }Block;
 /*Block: |4byte(size)|4byte(isfree)|8-byte next|0-byte(data)|*/

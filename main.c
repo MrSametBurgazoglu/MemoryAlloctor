@@ -21,9 +21,9 @@ void* mymalloc(size_t size){
         first_call = 0;
         free_list = heap_start;
     }
-    Block *current_block = heap_start;
+    Block *current_block = free_list;
     while(current_block->next != NULL){
-        if(current_block->info.isfree == 1 && current_block->info.size > size){
+        if(current_block->info.size > size){
             Block *new_block = split(current_block, size);
             return (void*)new_block+sizeof(Block);
         }
@@ -32,23 +32,35 @@ void* mymalloc(size_t size){
     return NULL;
 }
 
-void* myfree(void *p){
-    Block *b = (Block*) (p- sizeof(Block));
+void* myfree(void *p) {
+    Block *b = (Block *) (p - sizeof(Block));
     b->info.isfree = 1;
     Block *current_block = (Block *) b->next;
-    if(!current_block->info.isfree){
+    if (!current_block->info.isfree) {
         b->info.size += current_block->info.size + sizeof(Block);
         b->next = current_block->next;
+        Block *temp_f = (Block *) current_block->next_free;
+        Block *temp_b = (Block *) current_block->prev_free;
+        temp_b->next_free = (struct block *) temp_f;
+        temp_f->prev_free = (struct block *) temp_b;
     }
     current_block = (Block *) b->prev;
-    if(!current_block->info.isfree){
+    if (!current_block->info.isfree) {
         current_block->info.size += b->info.size + sizeof(Block);
         current_block->prev = b->prev;
+        current_block->next_free = b->next_free;
+        Block *temp_f = (Block *) current_block->next_free;
+        Block *temp_b = (Block *) current_blo   ck->prev_free;
+        temp_b->next_free = (struct block *) temp_f;
+        temp_f->prev_free = (struct block *) temp_b;
         b = current_block;
     }
-    return (void *) b;
+    current_block = free_list;
+    while (current_block->next != NULL) {
+        current_block = (Block *) current_block->next;
+    }
+    current_block->next = (struct block *) b;
 }
-
 int main() {
     printf("Hello, World!\n");
     return 0;
