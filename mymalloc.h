@@ -33,6 +33,6 @@ static Block *heap_start = NULL;    /*head of allocated memory from sbrk */
 void *mymalloc(size_t size);
 void *myfree(void *p);
 Block *split(Block *b, size_t size);
-int test(int fitStrategy);
+void printHeap();
 
 #endif //MYMALLOC_H
