@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include "mymalloc.h"
 
 Block* split(Block *b, size_t size){
