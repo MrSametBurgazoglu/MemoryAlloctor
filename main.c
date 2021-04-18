@@ -40,9 +40,52 @@ void delete_from_free_list(Block *b){
     }
 }
 
+void* find_best_fit(size_t size){
+    Block *current_block = free_list;
+    Block *result = current_block;
+    while(current_block != NULL){
+        if(current_block->info.size > size+sizeof(Block) && (size - current_block->info.size) < (size - result->info.size)){
+            result = current_block;
+        }
+        current_block = (Block *) current_block->next;
+    }
+    if(result->info.size > size+sizeof(Block)){/* if there is no block matching don't return first block  */
+        Block *new_block = split(result, size);
+        return (void*)new_block+sizeof(Block);
+    }
+    return NULL;
+}
+
+void* find_worst_fit(size_t size){
+    Block *current_block = free_list;
+    Block *result = current_block;
+    while(current_block != NULL){
+        if(current_block->info.size > size+sizeof(Block) && (size - current_block->info.size) > (size - result->info.size)){
+            result = current_block;
+        }
+        current_block = (Block *) current_block->next;
+    }
+    if(result->info.size > size+sizeof(Block)){/* if there is no block matching don't return first block  */
+        Block *new_block = split(result, size);
+        return (void*)new_block+sizeof(Block);
+    }
+    return NULL;
+}
+
+void* find_first_fit(size_t size){
+    Block *current_block = free_list;
+    while(current_block != NULL){
+        if(current_block->info.size > size+sizeof(Block)){
+            Block *new_block = split(current_block, size);
+            return (void*)new_block+sizeof(Block);
+        }
+        current_block = (Block *) current_block->next;
+    }
+    return NULL;
+}
+
 void* mymalloc(size_t size){
     size = (size / 16 + 1) * 16;
-    printf("size_gived %zu\n", size);
     static int first_call = 1;
     if(first_call){
         heap_start = sbrk(1024);
@@ -55,19 +98,25 @@ void* mymalloc(size_t size){
         first_call = 0;
         free_list = heap_start;
     }
-    Block *current_block = free_list;
-    while(current_block != NULL){
-        if(current_block->info.size > size+sizeof(Block)){
-            Block *new_block = split(current_block, size);
-            return (void*)new_block+sizeof(Block);
-        }
-        current_block = (Block *) current_block->next;
+    void *result;
+    switch (strategy) {
+        case bestFit:
+            result = find_best_fit(size);
+            break;
+        case worstFit:
+            result = find_worst_fit(size);
+            break;
+        case firstFit:
+            result = find_first_fit(size);
+            break;
+        default:
+            result = NULL;
+            break;
     }
-    return NULL;
+    return result;
 }
 
 void* myfree(void *p) {
-    printf("%p", p);
     Block *b = (Block *) (p - sizeof(Block));
     b->info.isfree = 1;
     if(b->next != NULL) {
@@ -95,19 +144,15 @@ void printHeap(){
     Block *current_block = heap_start;
     printf("Blocks:\n");
     while (current_block != NULL) {
-        printf("Free: %d", current_block->info.isfree);
+        printf("Free: %d && ", current_block->info.isfree);
         printf("Size: %d\n", current_block->info.size);
         current_block = (Block *) current_block->next;
     }
 }
 
 int main() {
-    printf("Hello, World!\n");
     void *alan = mymalloc(100);
     void *alan2 = mymalloc(200);
-    //printf("\n%p\n", heap_start);
-    //printf("\n%p\n", alan);
-    //myfree(alan);
     void *alan3 = mymalloc(200);
     myfree(alan);
     printHeap();
