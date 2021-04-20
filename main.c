@@ -14,11 +14,11 @@ Block* split(Block *b, size_t size){
     new_block->info.isfree = 0;
     new_block->prev = (struct block *) b;/*old block is left block of new block*/
     new_block->next = b->next;/*new block's next is old block's next */
-    if(b->next != NULL){
+    if(b->next != NULL){/* if there is a next block*/
         Block *next_block = (Block *) b->next;
         next_block->prev = (struct block *) new_block;
     }
-    b->next = (struct block *) new_block;/*new blcok is right blcok of old block */
+    b->next = (struct block *) new_block;/*new block is right block of old block */
     return new_block;
 }
 
@@ -48,7 +48,7 @@ void delete_from_free_list(Block *b){
     }
 }
 
-void* find_best_fit(size_t size){
+void* find_best_fit(size_t size){/* find best fit for wanted size*/
     Block *current_block = free_list;
     Block *result = current_block;
     while(current_block != NULL){
@@ -64,7 +64,7 @@ void* find_best_fit(size_t size){
     return NULL;
 }
 
-void* find_worst_fit(size_t size){
+void* find_worst_fit(size_t size){/* find worst fit for wanted size*/
     Block *current_block = free_list;
     Block *result = current_block;
     while(current_block != NULL){
@@ -80,7 +80,7 @@ void* find_worst_fit(size_t size){
     return NULL;
 }
 
-void* find_first_fit(size_t size){
+void* find_first_fit(size_t size){/* find first fit for wanted size*/
     Block *current_block = free_list;
     while(current_block != NULL){
         if(current_block->info.size > size+sizeof(Block)){/* find the first block have enough size */
@@ -92,7 +92,7 @@ void* find_first_fit(size_t size){
     return NULL;
 }
 
-void* mymalloc(size_t size){
+void* mymalloc(size_t size){/*give space */
     size = (size / 16 + 1) * 16;
     static int first_call = 1;
     if(first_call){
@@ -141,7 +141,8 @@ void* myfree(void *p) {
         if (current_block->info.isfree) {/* merge it with current block if its free*/
             current_block->info.size += b->info.size + sizeof(Block);
             current_block->prev = b->prev;
-            delete_from_free_list(current_block);
+            current_block->next = b->next;
+            delete_from_free_list(b);
             b = current_block;
         }
     }
@@ -165,6 +166,7 @@ int main() {
     void *alan3 = mymalloc(200);
     myfree(alan);
     myfree(alan2);
+    myfree(alan3);
     printHeap();
     brk(heap_start);
     return 0;
